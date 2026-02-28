@@ -19,7 +19,7 @@ fastify.register(fastifyRateLimit, {
 });
 
 // Register routes
-fastify.register(authRoutes);
+fastify.register(authRoutes, { prefix: '/api/auth' });
 fastify.register(chatRoutes);
 
 // Run the server
