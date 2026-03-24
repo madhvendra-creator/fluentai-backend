@@ -8,7 +8,7 @@ export const chatController = {
                 return reply.status(400).send({ error: "Message and sessionId are required" });
             }
 
-            const { sessionId, message } = request.body;
+            const { sessionId, message, topicId } = request.body;
 
             // 1. Fetch History
             const history = await redisService.getConversationHistory(sessionId);
@@ -22,7 +22,7 @@ export const chatController = {
             });
 
             // 3. Stream Response
-            const stream = await openaiClient.streamChatCompletion(history, message);
+            const stream = await openaiClient.streamChatCompletion(history, message, topicId);
             let fullAiResponse = "";
 
             for await (const chunk of stream) {

@@ -6,9 +6,15 @@ const openai = new OpenAI({
 });
 
 export const openaiClient = {
-    async streamChatCompletion(history, message) {
+    async streamChatCompletion(history, message, topicId) {
+        let systemContent = "You are a friendly English conversation partner. The user is practicing English. Reply naturally in 1-3 short sentences to keep the conversation going. Ask a follow-up question. Do NOT correct their grammar here, just converse.";
+        
+        if (topicId) {
+            systemContent = `You are a professional English tutor roleplaying as an interviewer. The current topic is '${topicId}'. Keep your responses short (1-2 sentences). Do not just agree with the user. You must proactively ask a relevant follow-up question to keep them speaking English.`;
+        }
+
         const messages = [
-            { role: "system", content: "You are a friendly English conversation partner. The user is practicing English. Reply naturally in 1-3 short sentences to keep the conversation going. Ask a follow-up question. Do NOT correct their grammar here, just converse." },
+            { role: "system", content: systemContent },
             ...history,
             { role: "user", content: message }
         ];
