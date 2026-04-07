@@ -6,11 +6,18 @@ const openai = new OpenAI({
 });
 
 export const openaiClient = {
-    async streamChatCompletion(history, message, topicId) {
-        let systemContent = "You are a friendly English conversation partner. The user is practicing English. Reply naturally in 1-3 short sentences to keep the conversation going. Ask a follow-up question. Do NOT correct their grammar here, just converse.";
+    async streamChatCompletion(history, message, topicId, correctedText, isAutocorrectEnabled) {
+        let systemContent = "You are a friendly English conversation partner. Reply naturally in 1-3 short sentences. Ask a follow-up question.";
         
-        if (topicId) {
-            systemContent = `You are a professional English tutor roleplaying as an interviewer. The current topic is '${topicId}'. Keep your responses short (1-2 sentences). Do not just agree with the user. You must proactively ask a relevant follow-up question to keep them speaking English.`;
+        if (topicId && topicId !== "free_talk") {
+            systemContent = `You are a professional English tutor roleplaying as an interviewer for topic '${topicId}'. Keep your responses short (1-2 sentences). You must proactively ask a relevant follow-up question.`;
+        }
+
+        // NEW: Inject strict autocorrect logic
+        if (isAutocorrectEnabled && message.trim().toLowerCase() !== correctedText.trim().toLowerCase()) {
+            systemContent += `\nIMPORTANT: The user just made a grammar mistake. They said "${message}", but the correct way is "${correctedText}". You MUST start your reply by saying exactly: "That is incorrect, you can say instead: ${correctedText}". After saying that, continue the conversation normally and ask your follow-up question.`;
+        } else {
+            systemContent += "\nDo NOT correct their grammar here, just converse.";
         }
 
         const messages = [
