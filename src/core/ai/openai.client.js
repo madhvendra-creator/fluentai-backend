@@ -13,9 +13,20 @@ export const openaiClient = {
             systemContent = `You are a professional English tutor roleplaying as an interviewer for topic '${topicId}'. Keep your responses short (1-2 sentences). You must proactively ask a relevant follow-up question.`;
         }
 
-        // NEW: Inject strict autocorrect logic
-        if (isAutocorrectEnabled && message.trim().toLowerCase() !== correctedText.trim().toLowerCase()) {
-            systemContent += `\nIMPORTANT: The user just made a grammar mistake. They said "${message}", but the correct way is "${correctedText}". You MUST start your reply by saying exactly: "That is incorrect, you can say instead: ${correctedText}". After saying that, continue the conversation normally and ask your follow-up question.`;
+        // FIX 1: Clean strings to prevent false positives from punctuation and capitalization
+        const cleanMsg = message.replace(/[^a-zA-Z0-9\s]/g, '').trim().toLowerCase();
+        const cleanCorr = correctedText.replace(/[^a-zA-Z0-9\s]/g, '').trim().toLowerCase();
+        const hasMistake = cleanMsg !== cleanCorr;
+
+        // FIX 2: Strict multi-line template for formatting
+        if (isAutocorrectEnabled && hasMistake) {
+            systemContent += `\n\nIMPORTANT: The user made a grammar mistake. You MUST structure your response in two distinct parts separated by a blank line.
+
+Line 1 EXACTLY: "That is incorrect, you can say instead: ${correctedText}"
+Line 2: (Leave this blank)
+Line 3: (Your natural conversational reply to the user's message)
+
+Do NOT merge them together.`;
         } else {
             systemContent += "\nDo NOT correct their grammar here, just converse.";
         }
