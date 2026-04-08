@@ -21,9 +21,25 @@ export const chatController = {
                 'Connection': 'keep-alive'
             });
 
-            // 3. Stream Response
-            const stream = await openaiClient.streamChatCompletion(history, message, topicId, correctedText, isAutocorrectEnabled);
             let fullAiResponse = "";
+
+            // 3. PROGRAMMATIC AUTO-CORRECT LOGIC
+            // Clean strings to ignore punctuation/capitalization false positives
+            if (isAutocorrectEnabled && correctedText) {
+                const cleanMsg = message.replace(/[^a-zA-Z0-9\s]/g, '').trim().toLowerCase();
+                const cleanCorr = correctedText.replace(/[^a-zA-Z0-9\s]/g, '').trim().toLowerCase();
+                
+                if (cleanMsg !== cleanCorr) {
+                    // Send the correction first with double line breaks (\n\n)
+                    const correctionPrefix = `That is incorrect, you can say instead: ${correctedText}\n\n`;
+                    fullAiResponse += correctionPrefix;
+                    reply.raw.write(`data: ${JSON.stringify({ text: correctionPrefix })}\n\n`);
+                }
+            }
+
+            // 4. Stream AI Response (Normal Conversation ONLY)
+            // Notice we no longer pass correctedText/isAutocorrectEnabled to the AI
+            const stream = await openaiClient.streamChatCompletion(history, message, topicId);
 
             for await (const chunk of stream) {
                 const textChunk = chunk.choices[0]?.delta?.content || "";
