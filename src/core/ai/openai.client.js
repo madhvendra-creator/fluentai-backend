@@ -26,14 +26,20 @@ export const openaiClient = {
         });
     },
 
-    async evaluateSpeech(message) {
+    async evaluateSpeech(message, topicId, previousAiText) {
+        let systemContent = 'You are an English language tutor. Analyze the user\'s sentence. Respond ONLY with a JSON object in this exact format: { "correctedText": "string", "feedback": "short string", "score": integer 0-100 }.';
+
+        if (topicId === "translation_practice" && previousAiText) {
+            systemContent = `You are a strict translation evaluator. The user was asked to translate this sentence into Hindi: '${previousAiText}'. Evaluate their Hindi translation provided in the user message. Respond ONLY with a JSON object in this exact format: { "correctedText": "string", "feedback": "short string", "score": integer 0-100 }.`;
+        }
+
         const response = await openai.chat.completions.create({
             model: "gpt-4o-mini",
             response_format: { type: "json_object" },
             messages: [
                 {
                     role: "system",
-                    content: 'You are an English language tutor. Analyze the user\'s sentence. Respond ONLY with a JSON object in this exact format: { "correctedText": "string", "feedback": "short string", "score": integer 0-100 }.'
+                    content: systemContent
                 },
                 {
                     role: "user",
