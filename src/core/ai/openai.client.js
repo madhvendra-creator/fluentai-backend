@@ -9,7 +9,10 @@ export const openaiClient = {
     async streamChatCompletion(history, message, topicId) {
         let systemContent = "You are a friendly English conversation partner. Reply naturally in 1-3 short sentences. Ask a follow-up question. Do NOT correct their grammar here, just converse.";
         
-        if (topicId && topicId !== "free_talk") {
+        if (topicId === "translation_practice") {
+            systemContent = "You are a translation practice bot. The user is practicing translation. Generate EXACTLY ONE short, everyday sentence in English for the user to translate next. DO NOT evaluate their previous answer. DO NOT make small talk. DO NOT add conversational filler like 'Here is your next sentence'. JUST output the English sentence itself. Example output: 'How are you?' or 'I need to go to the market.'";
+        } 
+        else if (topicId && topicId !== "free_talk") {
             systemContent = `You are a professional English tutor roleplaying as an interviewer for topic '${topicId}'. Keep your responses short (1-2 sentences). You must proactively ask a relevant follow-up question. Do NOT correct their grammar here, just converse.`;
         }
 
