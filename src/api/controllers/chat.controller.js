@@ -8,7 +8,7 @@ export const chatController = {
                 return reply.status(400).send({ error: "Message and sessionId are required" });
             }
 
-            const { sessionId, message, topicId, correctedText, isAutocorrectEnabled } = request.body;
+            const { sessionId, message, topicId, correctedText, isAutocorrectEnabled, targetLanguage } = request.body;
 
             // 1. Fetch History
             const history = await redisService.getConversationHistory(sessionId);
@@ -30,8 +30,10 @@ export const chatController = {
                 const cleanCorr = correctedText.replace(/[^a-zA-Z0-9\s]/g, '').trim().toLowerCase();
                 
                 if (cleanMsg !== cleanCorr) {
-                    // Send the correction first with double line breaks (\n\n)
-                    const correctionPrefix = `That is incorrect, you can say instead: ${correctedText}\n\n`;
+                    // Use a translation-aware prefix when in translation_practice mode
+                    const correctionPrefix = topicId === "translation_practice"
+                        ? `Incorrect! The correct ${targetLanguage || 'Hindi'} translation is: ${correctedText}\n\n`
+                        : `That is incorrect, you can say instead: ${correctedText}\n\n`;
                     fullAiResponse += correctionPrefix;
                     reply.raw.write(`data: ${JSON.stringify({ text: correctionPrefix })}\n\n`);
                 }
@@ -39,7 +41,7 @@ export const chatController = {
 
             // 4. Stream AI Response (Normal Conversation ONLY)
             // Notice we no longer pass correctedText/isAutocorrectEnabled to the AI
-            const stream = await openaiClient.streamChatCompletion(history, message, topicId);
+            const stream = await openaiClient.streamChatCompletion(history, message, topicId, targetLanguage);
 
             for await (const chunk of stream) {
                 const textChunk = chunk.choices[0]?.delta?.content || "";
@@ -68,10 +70,10 @@ export const chatController = {
                 return reply.status(400).send({ error: "Message is required" });
             }
 
-            const { message, topicId, previousAiText } = request.body;
+            const { message, topicId, previousAiText, targetLanguage } = request.body;
 
             // Call OpenAI for JSON evaluation
-            const evaluation = await openaiClient.evaluateSpeech(message, topicId, previousAiText);
+            const evaluation = await openaiClient.evaluateSpeech(message, topicId, previousAiText, targetLanguage);
 
             return reply.send(evaluation);
 
