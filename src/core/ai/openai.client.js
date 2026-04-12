@@ -31,12 +31,20 @@ export const openaiClient = {
         });
     },
 
-    async evaluateSpeech(message, topicId, previousAiText, targetLanguage) {
+    async evaluateSpeech(message, topicId, previousAiText, targetLanguage, sourceLang) {
         let systemContent = 'You are an English language tutor. Analyze the user\'s sentence. Respond ONLY with a JSON object in this exact format: { "correctedText": "string", "feedback": "short string", "score": integer 0-100 }.';
 
         if (topicId === "translation_practice" && previousAiText) {
             const lang = targetLanguage || 'Hindi';
-            systemContent = `You are a strict translation evaluator. The user was asked to translate this English sentence into ${lang}: '${previousAiText}'. The user's attempted translation is in the user message. You must respond ONLY with this exact JSON: { "correctedText": "the ideal correct ${lang} translation of the original English sentence (always provide this, even if the user was correct)", "feedback": "one short sentence about what the user got right or wrong", "score": "integer 0-100 based on translation accuracy" }.`;
+            systemContent = `You are a strict translation evaluator. 
+The user was asked to translate this ${sourceLang || 'English'} sentence into ${lang}: '${previousAiText}'. 
+Evaluate their ${lang} translation in the user message.
+Respond ONLY with JSON: 
+{ 
+  "correctedText": "ideal correct ${lang} translation of the original sentence",
+  "feedback": "one short sentence on accuracy",
+  "score": integer 0-100
+}`;
         }
 
         const response = await openai.chat.completions.create({

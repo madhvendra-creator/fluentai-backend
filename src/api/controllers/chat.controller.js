@@ -70,10 +70,10 @@ export const chatController = {
                 return reply.status(400).send({ error: "Message is required" });
             }
 
-            const { message, topicId, previousAiText, targetLanguage } = request.body;
+            const { message, topicId, previousAiText, targetLanguage, sourceLang } = request.body;
 
             // Call OpenAI for JSON evaluation
-            const evaluation = await openaiClient.evaluateSpeech(message, topicId, previousAiText, targetLanguage);
+            const evaluation = await openaiClient.evaluateSpeech(message, topicId, previousAiText, targetLanguage, sourceLang);
 
             return reply.send(evaluation);
 
