@@ -32,19 +32,27 @@ export const openaiClient = {
     },
 
     async generateHint(question, topicId) {
-        const systemContent = `You are a helpful language tutor. The user is practicing translation.
-Give a SHORT hint to help them translate the sentence without giving away the full answer.
-A good hint can be: the first word of the translation, a grammar structure tip, or a vocabulary clue.
-Keep the hint to 1-2 sentences maximum.`;
-
         const response = await openai.chat.completions.create({
             model: "gpt-4o-mini",
             messages: [
-                { role: "system", content: systemContent },
-                { role: "user", content: `Give me a hint for translating: "${question}"` }
-            ]
+                { 
+                    role: "system", 
+                    content: `You are a helpful English speaking coach. 
+The user is practicing English conversation and needs help answering a question.
+Give ONE short example answer in English (1-2 sentences only).
+The answer must be DIRECTLY relevant to the question asked.
+Output ONLY the example answer. No explanation, no preamble, no quotes, no labels.`
+                },
+                { 
+                    role: "user", 
+                    content: `The question is: "${question}"\n\nGive me a short example answer for this exact question.`
+                }
+            ],
+            max_tokens: 60,
+            temperature: 0.5
         });
-        return response.choices[0].message.content;
+
+        return response.choices[0].message.content.trim();
     },
 
     async evaluateSpeech(message, topicId, previousAiText, targetLanguage, sourceLang) {
