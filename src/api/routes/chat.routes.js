@@ -20,4 +20,10 @@ export default async function chatRoutes(fastify, options) {
         { preValidation: [authenticate] },
         chatController.handleEvaluate
     );
+
+    fastify.post(
+        "/chat/hint",
+        { preValidation: [authenticate] },
+        chatController.handleHint
+    );
 }

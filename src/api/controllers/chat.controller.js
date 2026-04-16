@@ -81,5 +81,23 @@ export const chatController = {
             request.log.error(err);
             return reply.status(500).send({ error: err.message });
         }
+    },
+
+    async handleHint(request, reply) {
+        try {
+            if (!request.body || !request.body.question) {
+                return reply.status(400).send({ error: "Question is required" });
+            }
+
+            const { question, topicId } = request.body;
+
+            const hint = await openaiClient.generateHint(question, topicId);
+
+            return reply.send({ hint });
+
+        } catch (err) {
+            request.log.error(err);
+            return reply.status(500).send({ error: err.message });
+        }
     }
 };

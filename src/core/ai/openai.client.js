@@ -31,6 +31,22 @@ export const openaiClient = {
         });
     },
 
+    async generateHint(question, topicId) {
+        const systemContent = `You are a helpful language tutor. The user is practicing translation.
+Give a SHORT hint to help them translate the sentence without giving away the full answer.
+A good hint can be: the first word of the translation, a grammar structure tip, or a vocabulary clue.
+Keep the hint to 1-2 sentences maximum.`;
+
+        const response = await openai.chat.completions.create({
+            model: "gpt-4o-mini",
+            messages: [
+                { role: "system", content: systemContent },
+                { role: "user", content: `Give me a hint for translating: "${question}"` }
+            ]
+        });
+        return response.choices[0].message.content;
+    },
+
     async evaluateSpeech(message, topicId, previousAiText, targetLanguage, sourceLang) {
         let systemContent = 'You are an English language tutor. Analyze the user\'s sentence. Respond ONLY with a JSON object in this exact format: { "correctedText": "string", "feedback": "short string", "score": integer 0-100 }.';
 
